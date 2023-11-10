@@ -24,13 +24,13 @@ module.exports = async (logSources, printer) => {
     // Arguably this is an abuse of `map` because we don't do anything with the new array
     // that is created. But this is a terse way of achieving the goal of waiting for all
     // of the initial values to populate.
-    logSources.map(async (ls, idx) => {
-      const log = await ls.popAsync();
+    logSources.map(async (source, id) => {
+      const log = await source.popAsync();
 
       if (log) {
         pq.enqueue({
           ...log,
-          id: idx,
+          id,
         });
       }
     })
