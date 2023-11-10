@@ -26,7 +26,7 @@ describe("sync solution", () => {
       pop: jest.fn(),
     };
     const fakeLog = {
-      date: new Date(now.getTime()),
+      date: now,
       msg: message,
     };
     let resultLog = null;
@@ -44,4 +44,50 @@ describe("sync solution", () => {
     expect(fakePrinter.print).toHaveBeenCalledTimes(1);
     expect(resultLog).toMatchObject(fakeLog);
   });
+
+  it("should print logs in chronological order", () => {
+    const fakeLogSource1 = createFakeLogSource();
+    const fakeLogSource2 = createFakeLogSource();
+    const result = [];
+
+    fakeLogSource1.pop.mockImplementation(createFakePopFn(0, 10, 2));
+    fakeLogSource2.pop.mockImplementation(createFakePopFn(1, 10, 2));
+
+    fakePrinter.print.mockImplementation((log) => {
+      result.push(log.date.getTime());
+    });
+
+    solution([fakeLogSource1, fakeLogSource2], fakePrinter);
+
+    expect(result).toMatchObject(Array.from({ length: 11 }).map((_, i) => i));
+  });
 });
+
+function createFakeLogSource() {
+  return {
+    pop: jest.fn(),
+  };
+}
+
+/**
+ * @param {number} start
+ * @param {number} max
+ * @param {number} increment
+ * @returns {() => {date: Date, msg: string} | false}
+ */
+function createFakePopFn(start, max, increment) {
+  let current = start - increment;
+
+  return () => {
+    current += increment;
+
+    if (current > max) {
+      return false;
+    }
+
+    return {
+      date: new Date(current),
+      msg: "",
+    };
+  };
+}
