@@ -1,5 +1,7 @@
 // @ts-check
 
+"use strict";
+
 const PriorityQueue = require("../lib/priority-queue");
 
 describe("PriorityQueue behavior", () => {
