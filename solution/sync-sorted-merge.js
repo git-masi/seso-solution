@@ -20,13 +20,13 @@ module.exports = (logSources, printer) => {
   const init = /** @type {Array<T & {id: number}>} */ ([]);
   const pq = new PriorityQueue(init);
 
-  logSources.forEach((ls, idx) => {
-    const log = ls.pop();
+  logSources.forEach((source, id) => {
+    const log = source.pop();
 
     if (log) {
       pq.enqueue({
         ...log,
-        id: idx,
+        id,
       });
     }
   });
