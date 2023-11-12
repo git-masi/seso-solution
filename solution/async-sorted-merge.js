@@ -17,21 +17,18 @@ module.exports = async (logSources, printer) => {
   const init = /** @type {Array<Log & {id: number}>} */ ([]);
   const pq = new PriorityQueue(init);
 
-  await Promise.all(
-    // Arguably this is an abuse of `map` because we don't do anything with the new array
-    // that is created. But this is a terse way of achieving the goal of waiting for all
-    // of the initial values to populate.
-    logSources.map(async (source, id) => {
-      const log = await source.popAsync();
-
-      if (log) {
-        pq.enqueue({
-          ...log,
-          id,
-        });
-      }
-    })
+  const initialLogs = await Promise.all(
+    logSources.map((logSource) => logSource.popAsync())
   );
+
+  initialLogs.forEach((log, id) => {
+    if (log) {
+      pq.enqueue({
+        ...log,
+        id,
+      });
+    }
+  });
 
   let next = pq.dequeue();
 
