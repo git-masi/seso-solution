@@ -1,13 +1,16 @@
 // @ts-check
 
+const {
+  createFakePrinter,
+  createFakeLogSource,
+  createFakePopAsyncFn,
+} = require("../test-lib/fakes");
+const { delay } = require("../lib/time");
 const solution = require("../solution/async-sorted-merge");
 
 describe("sync solution", () => {
   const now = new Date();
-  const fakePrinter = {
-    print: jest.fn(),
-    done: jest.fn(),
-  };
+  const fakePrinter = createFakePrinter();
   const fakeLogSource1 = createFakeLogSource();
   const fakeLogSource2 = createFakeLogSource();
 
@@ -47,8 +50,8 @@ describe("sync solution", () => {
   it("should print logs in chronological order", async () => {
     const result = [];
 
-    fakeLogSource1.popAsync.mockImplementation(createFakePopFn(0, 10, 2));
-    fakeLogSource2.popAsync.mockImplementation(createFakePopFn(1, 10, 2));
+    fakeLogSource1.popAsync.mockImplementation(createFakePopAsyncFn(0, 10, 2));
+    fakeLogSource2.popAsync.mockImplementation(createFakePopAsyncFn(1, 10, 2));
 
     fakePrinter.print.mockImplementation((log) => {
       result.push(log.date.getTime());
@@ -65,11 +68,11 @@ describe("sync solution", () => {
     const result = [];
 
     fakeLogSource1.popAsync
-      .mockImplementationOnce(() => sleep(1000, fakeLog1))
+      .mockImplementationOnce(() => delay(1000, fakeLog1))
       .mockImplementationOnce(async () => false);
 
     fakeLogSource2.popAsync
-      .mockImplementationOnce(() => sleep(1, fakeLog2))
+      .mockImplementationOnce(() => delay(1, fakeLog2))
       .mockImplementationOnce(async () => false);
 
     fakePrinter.print.mockImplementation((log) => {
@@ -81,47 +84,3 @@ describe("sync solution", () => {
     expect(result).toMatchObject([fakeLog1, fakeLog2]);
   });
 });
-
-function createFakeLogSource() {
-  return {
-    popAsync: jest.fn(),
-  };
-}
-
-/**
- * @param {number} start
- * @param {number} max
- * @param {number} increment
- * @returns {() => Promise<{date: Date, msg: string} | false>}
- */
-function createFakePopFn(start, max, increment) {
-  let current = start - increment;
-
-  return async () => {
-    current += increment;
-
-    if (current > max) {
-      return false;
-    }
-
-    return {
-      date: new Date(current),
-      msg: "",
-    };
-  };
-}
-
-/**
- * @template {{}} T
- *
- * @param {number} time
- * @param {T} value
- * @returns {Promise<T>}
- */
-function sleep(time, value) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(value);
-    }, time);
-  });
-}
