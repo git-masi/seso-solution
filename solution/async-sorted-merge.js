@@ -3,6 +3,7 @@
 "use strict";
 
 const PriorityQueue = require("../lib/priority-queue");
+const batchPopAsync = require("../lib/batch-pop-async");
 
 // Print all entries, across all of the *async* sources, in chronological order.
 
@@ -14,11 +15,16 @@ const PriorityQueue = require("../lib/priority-queue");
  * @param {V} printer
  */
 module.exports = async (logSources, printer) => {
+  const batchSize = 20;
   const init = /** @type {Array<Log & {id: number}>} */ ([]);
   const pq = new PriorityQueue(init);
 
+  const batchedLogSources = logSources.map((logSource) =>
+    batchPopAsync(logSource.popAsync.bind(logSource), batchSize)
+  );
+
   const initialLogs = await Promise.all(
-    logSources.map((logSource) => logSource.popAsync())
+    batchedLogSources.map((popAsync) => popAsync())
   );
 
   initialLogs.forEach((log, id) => {
@@ -35,7 +41,7 @@ module.exports = async (logSources, printer) => {
   while (next) {
     printer.print(next);
 
-    const log = await logSources[next.id].popAsync();
+    const log = await batchedLogSources[next.id]();
 
     if (log) {
       pq.enqueue({ ...log, id: next.id });
