@@ -32,19 +32,18 @@ describe("batch pop async behavior", () => {
   });
 
   it("should handle multiple parallel requests", async () => {
-    const numLogs = 20;
+    const numLogs = 21;
     const fakePopAsync = createFakePopAsyncFn(1, numLogs, 1);
     const delayedFakePopAsync = async () => {
-      await sleep(5);
+      const rand = Math.floor(Math.random() * 10) + 1;
+      await sleep(rand);
       return fakePopAsync();
     };
     const batched = batchPopAsync(delayedFakePopAsync, 10);
     const result = /** @type {Array<Log | false>}*/ ([]);
 
     for (let i = 0; i < numLogs; i++) {
-      result.push(await batched());
-      result.push(await batched());
-      result.push(await batched());
+      result.push(...(await Promise.all([batched(), batched(), batched()])));
     }
 
     // The first X logs should be valid logs
