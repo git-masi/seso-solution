@@ -2,22 +2,19 @@
 
 "use strict";
 
-/** @typedef {{date: Date, msg: string}} Log */
-
 const PriorityQueue = require("../lib/priority-queue");
 
 // Print all entries, across all of the sources, in chronological order.
 
 /**
- * @template {Log} T
- * @template {{pop: () => T | false }} LogSource
- * @template {{print: (log: T) => void, done: () => void}} Printer
+ * @template {Pick<LogSource, "pop">} U
+ * @template {Printer} V
  *
- * @param {Array<LogSource>} logSources
- * @param {Printer} printer
+ * @param {Array<U>} logSources
+ * @param {V} printer
  */
 module.exports = (logSources, printer) => {
-  const init = /** @type {Array<T & {id: number}>} */ ([]);
+  const init = /** @type {Array<Log & {id: number}>} */ ([]);
   const pq = new PriorityQueue(init);
 
   logSources.forEach((source, id) => {
