@@ -1,5 +1,12 @@
 // @ts-check
 
+function createFakePrinter() {
+  return {
+    print: jest.fn(),
+    done: jest.fn(),
+  };
+}
+
 function createFakeLogSource() {
   return {
     pop: jest.fn(),
@@ -13,7 +20,7 @@ function createFakeLogSource() {
  * @param {number} increment
  * @returns {() => Log | false}
  */
-function createFakePopFn(current, max, increment, isAsync) {
+function createFakePopFn(current, max, increment) {
   return () => {
     if (current > max) {
       return false;
@@ -57,4 +64,9 @@ function createFakePopAsyncFn(current, max, increment) {
   };
 }
 
-module.exports = { createFakeLogSource, createFakePopFn, createFakePopAsyncFn };
+module.exports = {
+  createFakePrinter,
+  createFakeLogSource,
+  createFakePopFn,
+  createFakePopAsyncFn,
+};

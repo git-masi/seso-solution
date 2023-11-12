@@ -1,13 +1,15 @@
 // @ts-check
 
+const {
+  createFakePrinter,
+  createFakeLogSource,
+  createFakePopFn,
+} = require("../test-lib/fakes");
 const solution = require("../solution/sync-sorted-merge");
 
 describe("sync solution", () => {
   const now = new Date();
-  const fakePrinter = {
-    print: jest.fn(),
-    done: jest.fn(),
-  };
+  const fakePrinter = createFakePrinter();
 
   afterEach(() => {
     jest.resetAllMocks();
@@ -62,32 +64,3 @@ describe("sync solution", () => {
     expect(result).toMatchObject(Array.from({ length: 11 }).map((_, i) => i));
   });
 });
-
-function createFakeLogSource() {
-  return {
-    pop: jest.fn(),
-  };
-}
-
-/**
- * @param {number} start
- * @param {number} max
- * @param {number} increment
- * @returns {() => {date: Date, msg: string} | false}
- */
-function createFakePopFn(start, max, increment) {
-  let current = start - increment;
-
-  return () => {
-    current += increment;
-
-    if (current > max) {
-      return false;
-    }
-
-    return {
-      date: new Date(current),
-      msg: "",
-    };
-  };
-}
