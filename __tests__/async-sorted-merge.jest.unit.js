@@ -5,7 +5,7 @@ const {
   createFakeLogSource,
   createFakePopAsyncFn,
 } = require("../test-lib/fakes");
-const { delay } = require("../lib/time");
+const { sleep } = require("../lib/time");
 const solution = require("../solution/async-sorted-merge");
 
 describe("async solution", () => {
@@ -26,16 +26,9 @@ describe("async solution", () => {
   });
 
   it("should call `print` one time", async () => {
-    const message = "testing 123";
-    const fakeLog = {
-      date: now,
-      msg: message,
-    };
     let resultLog = null;
 
-    fakeLogSource1.popAsync
-      .mockImplementationOnce(async () => fakeLog)
-      .mockImplementationOnce(async () => false);
+    fakeLogSource1.popAsync.mockImplementation(createFakePopAsyncFn(1, 1, 1));
 
     fakePrinter.print.mockImplementation((log) => {
       resultLog = log;
@@ -44,7 +37,7 @@ describe("async solution", () => {
     await solution([fakeLogSource1], fakePrinter);
 
     expect(fakePrinter.print).toHaveBeenCalledTimes(1);
-    expect(resultLog).toMatchObject(fakeLog);
+    expect(resultLog).toMatchObject({ date: new Date(1), msg: "1" });
   });
 
   it("should print logs in chronological order", async () => {
@@ -63,17 +56,19 @@ describe("async solution", () => {
   });
 
   it("should handle slow log sources", async () => {
-    const fakeLog1 = { date: new Date(now.getTime() - 1000), msg: "" };
-    const fakeLog2 = { date: new Date(now.getTime() - 1), msg: "" };
+    const fakeFn1 = createFakePopAsyncFn(1, 1, 1);
+    const fakeFn2 = createFakePopAsyncFn(2, 2, 1);
     const result = [];
 
-    fakeLogSource1.popAsync
-      .mockImplementationOnce(() => delay(1000, fakeLog1))
-      .mockImplementationOnce(async () => false);
+    fakeLogSource1.popAsync.mockImplementation(async () => {
+      await sleep(1000);
+      return fakeFn1();
+    });
 
-    fakeLogSource2.popAsync
-      .mockImplementationOnce(() => delay(1, fakeLog2))
-      .mockImplementationOnce(async () => false);
+    fakeLogSource2.popAsync.mockImplementation(async () => {
+      await sleep(1);
+      return fakeFn2();
+    });
 
     fakePrinter.print.mockImplementation((log) => {
       result.push(log);
@@ -81,6 +76,9 @@ describe("async solution", () => {
 
     await solution([fakeLogSource1, fakeLogSource2], fakePrinter);
 
-    expect(result).toMatchObject([fakeLog1, fakeLog2]);
+    expect(result).toMatchObject([
+      { date: new Date(1), msg: "1" },
+      { date: new Date(2), msg: "2" },
+    ]);
   });
 });
