@@ -8,7 +8,7 @@ const {
 const { delay } = require("../lib/time");
 const solution = require("../solution/async-sorted-merge");
 
-describe("sync solution", () => {
+describe("async solution", () => {
   const now = new Date();
   const fakePrinter = createFakePrinter();
   const fakeLogSource1 = createFakeLogSource();
